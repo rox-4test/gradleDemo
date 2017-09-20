@@ -17,3 +17,5 @@ include 'services:webservice'
 */
 
 rootProject.name = 'zzzBuild'
+
+includeFlat 'zzzTest1', 'zzzTest2'
