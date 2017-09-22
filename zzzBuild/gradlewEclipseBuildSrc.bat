@@ -1,0 +1,1 @@
+gradlew -b ./buildSrc/build.gradle eclipse

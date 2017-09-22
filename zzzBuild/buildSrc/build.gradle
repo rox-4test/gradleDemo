@@ -1,0 +1,34 @@
+repositories {
+	maven {
+		url 'https://software.smart-trade.net/artifactory/plugins-release'
+		credentials {
+			//if (hasProperty('artifactory_user') && hasProperty('artifactory_password')) {
+			username = "${artifactory_user}"
+			password = "${artifactory_password}"
+			//} else {
+			//   username = System.console().readLine('> Please enter your username: ')
+			//   password = System.console().readPassword('> Please enter your password: ')
+			//}
+		}
+	}
+}
+
+	
+// ------------------------------------Core gradle plugin---------------------------------
+apply plugin: 'java'
+apply plugin: 'groovy'
+apply plugin: 'eclipse'	
+
+dependencies {
+    compile gradleApi()
+    compile localGroovy()
+}
+
+eclipseJdt.enabled  = false
+cleanEclipseJdt.enabled  = false
+
+//eclipseProject.enabled = false
+//cleanEclipseProject.enabled = false
+
+
+

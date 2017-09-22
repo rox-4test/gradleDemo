@@ -1,0 +1,13 @@
+
+ext.isCiServer = System.getenv("JOB_NAME") ?: false
+
+buildCache {
+	local {
+		enabled = !isCiServer
+	}
+	remote(HttpBuildCache) {
+		url = System.getenv("GRADLE_CACHE_SERVER") ?: 'http://qbrun2:8885/cache/'
+		push = (isCiServer != false)
+		println 'push on remote : ' + push
+	}
+}

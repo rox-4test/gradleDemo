@@ -42,6 +42,22 @@ dependencies {
     compile 'org.slf4j:slf4j-api:1.7.21'
 
     testCompile 'junit:junit:4.12'
+    testCompile 'org.hamcrest:hamcrest-core:1.3'
+}
+
+
+task reportTest(type: TestReport) {
+	destinationDir = file("./junit_reports")
+	
+	subprojects.each { project ->
+		project.fileTree('build/test-results/').matching  { 
+			include "*/binary"
+		}.visit {FileVisitDetails details ->
+			if (details.file.isDirectory() && details.file.getName().equals('binary')) { 
+    			reportOn details.file 
+    		}
+		}
+	}
 }
 
 task taskX << {
