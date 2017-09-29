@@ -1,5 +1,11 @@
 import com.smarttrade.test.CoreTest;
 
+class CoreTest1 extends CoreTest {
+	public CoreTest1() {
+		setSkipIfNoTestFound(false);
+	}
+}
+
 configurations {
     //testCompile
     
@@ -17,9 +23,8 @@ dependencies {
     testBaseRuntime sourceSets.main.output, sourceSets.test.output
 }
 
-task g_testF (type: CoreTest) {
+task testF (type: CoreTest1) {
     classpath = configurations.testBaseRuntime
     //include '**/*TestSuite.class'
     include 'gradleDemo/test1/Test1TestSuite.class'
-    //testclass 'gradleDemo.test1.Test1TestSuite'
 }

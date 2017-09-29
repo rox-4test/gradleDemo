@@ -5,11 +5,9 @@ import java.util.ArrayList;
 import java.util.Collection;
 
 import org.gradle.api.Action;
-import org.gradle.api.Project;
 import org.gradle.api.Task;
 import org.gradle.api.artifacts.Configuration;
 import org.gradle.api.tasks.SourceSetContainer;
-import org.gradle.api.tasks.TaskAction;
 import org.gradle.api.tasks.testing.Test;
 
 public class CoreTest extends Test {
@@ -18,7 +16,7 @@ public class CoreTest extends Test {
 
 	public String filePrefix = "";
 	public boolean logClasspath = true;
-	private String testClass;
+	private boolean skipIfNoTestFound = true;
 
 	public CoreTest() {
 		super();
@@ -27,28 +25,23 @@ public class CoreTest extends Test {
 		getOutputs().upToDateWhen(CoreTest::isUpToDate);
 		getProject().afterEvaluate(project -> {
 			System.err.println("@Project: " + project.getName());
-			System.err.println("@BuildDir: " + project.getBuildDir());
+			System.err.println("@@@getIncludes: " + getIncludes());
+			System.err.println("@@@getCandidateClassFiles: " + getCandidateClassFiles().getFiles());
 			if (logClasspath)
 				doFirst(new DoFirstLog());
 			jvmArgs(getArgs());
-			for (String f : getIncludes()) {
-				String clazz = f.replace("/", ".").replaceAll(".class", "");
-				try {
-					Class.forName(clazz);
-					System.err.println("@@@Clazz: " + clazz);
-				} catch (ClassNotFoundException e) {
-					System.err.println("Class not found: " + clazz);
+			if (getCandidateClassFiles().getFiles().size() < 1) {
+				String warnMessage = "No test class found in includes list for test: " + project.getName() + ":"
+						+ getName() + ". Includes list: " + getIncludes();
+				if (skipIfNoTestFound) {
+					getLogger().warn("[WARN] " + warnMessage);
+					return;
+				} else {
+					throw new RuntimeException(warnMessage);
 				}
 			}
-			// include(testClass);
-			System.err.println("@@@: " + getIncludes());
 		});
 
-	}
-
-	public void testclass(String testClass) {
-		System.err.println("testClass: " + testClass);
-		this.testClass = testClass;
 	}
 
 	public void mainSourceSet(boolean fromMainSourceSet) {
@@ -56,6 +49,10 @@ public class CoreTest extends Test {
 			SourceSetContainer srcSetContainer = (SourceSetContainer) getProject().findProperty("sourceSets");
 			setTestClassesDir(srcSetContainer.getByName("main").getOutput().getClassesDir());
 		}
+	}
+
+	public void setSkipIfNoTestFound(boolean skip) {
+		skipIfNoTestFound = skip;
 	}
 
 	private static boolean isUpToDate(Task task) {
