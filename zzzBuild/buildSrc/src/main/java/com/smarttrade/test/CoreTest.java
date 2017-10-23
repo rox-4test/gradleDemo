@@ -5,9 +5,12 @@ import java.util.ArrayList;
 import java.util.Collection;
 
 import org.gradle.api.Action;
+import org.gradle.api.Project;
 import org.gradle.api.Task;
 import org.gradle.api.artifacts.Configuration;
+import org.gradle.api.internal.AbstractTask;
 import org.gradle.api.tasks.SourceSetContainer;
+import org.gradle.api.tasks.TaskAction;
 import org.gradle.api.tasks.testing.Test;
 
 public class CoreTest extends Test {
@@ -24,26 +27,43 @@ public class CoreTest extends Test {
 		workingDir(getProject().getProjectDir());
 		getOutputs().upToDateWhen(CoreTest::isUpToDate);
 		getProject().afterEvaluate(project -> {
-			System.err.println("@Project: " + project.getName());
-			System.err.println("@@@getIncludes: " + getIncludes());
-			System.err.println("@@@getCandidateClassFiles: " + getCandidateClassFiles().getFiles());
+			validateTestClassesExistence(project, this);
 			if (logClasspath)
 				doFirst(new DoFirstLog());
 			jvmArgs(getArgs());
-			if (getCandidateClassFiles().getFiles().size() < 1) {
-				String warnMessage = "No test class found in includes list for test: " + project.getName() + ":"
-						+ getName() + ". Includes list: " + getIncludes();
-				if (skipIfNoTestFound) {
+		});
+	}
+
+	private void validateTestClassesExistence(Project project, CoreTest testTask) {
+		TestClassesExistenceCheckTask checkTask = project.getTasks()
+				.create("checkTestClassesExistence_" + testTask.getName(), TestClassesExistenceCheckTask.class);
+		checkTask.testTask = testTask;
+		checkTask.mustRunAfter(project.getTasks().getByName("testClasses"));
+		testTask.dependsOn(checkTask);
+	}
+
+	public static class TestClassesExistenceCheckTask extends AbstractTask {
+
+		CoreTest testTask;
+
+		@TaskAction
+		public void check() {
+			if (testTask.getCandidateClassFiles().getFiles().size() < 1) {
+				String warnMessage = "No test class found in includes list for test: " + testTask.getProject().getName()
+						+ ":" + testTask.getName() + "\n+ Includes list: " + testTask.getIncludes()
+						+ "\n+ Excludes list: " + testTask.getExcludes();
+
+				if (testTask.skipIfNoTestFound) {
 					getLogger().warn("[WARN] " + warnMessage);
 					return;
 				} else {
 					throw new RuntimeException(warnMessage);
 				}
 			}
-		});
-
+		}
 	}
 
+	@SuppressWarnings("deprecation")
 	public void mainSourceSet(boolean fromMainSourceSet) {
 		if (fromMainSourceSet) {
 			SourceSetContainer srcSetContainer = (SourceSetContainer) getProject().findProperty("sourceSets");
@@ -84,12 +104,12 @@ public class CoreTest extends Test {
 	public class DoFirstLog implements Action<Task> {
 		@Override
 		public void execute(Task task) {
+			System.out.println("@@@DoFirst: " + task);
 			task.getLogger().quiet("JvmArgs :" + ((Test) task).getAllJvmArgs().toString());
 			task.getLogger().quiet("Classpath :");
 			for (File dep : ((Test) task).getClasspath()) {
 				task.getLogger().quiet(dep.toString());
 			}
-
 		}
 	}
 }

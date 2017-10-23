@@ -1,3 +1,5 @@
+import com.smarttrade.test.CoreTest;
+
 buildscript {
     repositories {
         mavenLocal()
@@ -17,10 +19,31 @@ allprojects {
 		mavenLocal()
 		jcenter()
 	}
+	
+	afterEvaluate { project ->
+    }
+
 }
 
 subprojects {
-	println '${project.name}'
+	println 'subprojects->begin: ' + project.name
+	
+	task testFF {
+		println project.name + '@testFF'
+	}
+	
+	tasks.whenTaskAdded { addedTask ->
+		if(addedTask.name.startsWith('testF')) {
+			project.afterEvaluate {
+				println 'afterEvaluate@@' + project.name + ":" + addedTask.name
+			}
+		}
+	}
+		
+	afterEvaluate { subproject ->
+		println 'afterEvaluate@subprojects -> ' + subproject.name
+	}
+	
 	publishing {
 		publications {
 	        mavenJava(MavenPublication) {
@@ -28,6 +51,8 @@ subprojects {
 	        }
 		}
 	}
+	
+	println 'subprojects->end: ' + project.name
 }
 
 publishing {
@@ -45,6 +70,28 @@ dependencies {
     testCompile 'org.hamcrest:hamcrest-core:1.3'
 }
 
+
+println 'This is executed during the configuration phase.'
+
+task configured {
+    println 'configured>> This is also executed during the configuration phase.'
+}
+
+task test1 {
+    doLast {
+        println 'test1:doLast>> This is executed during the execution phase.'
+    }
+}
+
+task testBoth {
+    doFirst {
+      println 'testBoth:doFirst>> This is executed first during the execution phase.'
+    }
+    doLast {
+      println 'testBoth:doLast>> This is executed last during the execution phase.'
+    }
+    println 'testBoth>> This is executed during the configuration phase as well.'
+}
 
 task reportTest(type: TestReport) {
 	destinationDir = file("./junit_reports")

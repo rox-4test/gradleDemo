@@ -1,11 +1,5 @@
 import com.smarttrade.test.CoreTest;
 
-class CoreTest1 extends CoreTest {
-	public CoreTest1() {
-		setSkipIfNoTestFound(false);
-	}
-}
-
 configurations {
     //testCompile
     
@@ -23,8 +17,39 @@ dependencies {
     testBaseRuntime sourceSets.main.output, sourceSets.test.output
 }
 
-task testF (type: CoreTest1) {
+afterEvaluate { subproject ->
+	println 'afterEvaluate@self  -> ' + subproject.name
+}
+	
+	
+println 'Self@: ' + project.name
+
+task testF (type: CoreTest) {
+	println 'self@testF'
     classpath = configurations.testBaseRuntime
     //include '**/*TestSuite.class'
     include 'gradleDemo/test1/Test1TestSuite.class'
+    //jvmArgs '-Xdebug','-Xrunjdwp:transport=dt_socket,server=y,suspend=y,address=10999'
+    skipIfNoTestFound = true
+    doLast {
+    	println '@zzzTest1#testF executed'
+    }
+}
+
+task testF2 (type: CoreTest) {
+	println 'self@testF'
+    classpath = configurations.testBaseRuntime
+    //include '**/*TestSuite.class'
+    include 'gradleDemo/test1/Test1TestSuite.class'
+    //jvmArgs '-Xdebug','-Xrunjdwp:transport=dt_socket,server=y,suspend=y,address=10999'
+    skipIfNoTestFound = true
+    doLast {
+    	println '@zzzTest1#testF2 executed'
+    }
+}
+
+task AAA {
+	doLast {
+		println 'Hello !!!'
+	}
 }
