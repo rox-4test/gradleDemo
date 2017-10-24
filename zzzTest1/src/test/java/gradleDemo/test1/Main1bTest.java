@@ -5,11 +5,11 @@ import org.junit.runner.RunWith;
 import org.junit.runners.JUnit4;
 
 @RunWith(JUnit4.class)
-public class Main11Test {
+public class Main1bTest {
 
 	@Test
 	public void testMain11() {
-		System.out.println("@@@testMain11!!!!");
-		Main11.main(null);
+		System.out.println("@@@testMain1b!!!!");
+		Main1b.main(null);
 	}
 }

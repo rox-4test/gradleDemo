@@ -15,7 +15,7 @@ import org.junit.runners.Suite.SuiteClasses;
 
 @RunWith(Suite.class)
 @SuiteClasses(value = { //
-		Main11Test.class })
-public class Test11TestSuite {
+		Main1bTest.class })
+public class Test1bTestSuite {
 
 }
