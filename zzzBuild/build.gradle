@@ -93,7 +93,7 @@ task testBoth {
     println 'testBoth>> This is executed during the configuration phase as well.'
 }
 
-task reportTest(type: TestReport) {
+task reportTestF(type: TestReport) {
 	destinationDir = file("./junit_reports")
 	
 	subprojects.each { project ->
