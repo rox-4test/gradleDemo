@@ -2,6 +2,7 @@ package gradleDemo.test1;
 
 public class Main1b {
 	public static void main(String[] args) {
+		System.out.println("@Develop");
 		System.out.println("Hello Gradle from zzzTest1");
 		System.out.println("JAVA_OPTS: " + System.getenv("JAVA_OPTS"));
 		for (int i = 0; i < 1; i++) {
