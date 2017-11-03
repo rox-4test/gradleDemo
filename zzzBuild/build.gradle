@@ -168,3 +168,65 @@ greeting {
     message = 'Hi from Gradle'
     outputFiles = files('a.txt', 'b.txt')
 }
+
+subprojects {
+	apply plugin: "application"
+	
+	apply plugin: "jacoco"
+	mainClassName = "org.gradle.MyMain"	
+
+	jacoco {
+	    applyTo run
+	    //toolVersion = "0.7.9"
+	    //reportsDir $buildDir/reports/jacoco
+	}
+
+	jacocoTestReport {
+	    reports {
+	        xml.enabled false
+	        csv.enabled false
+	        html.destination file("${buildDir}/jacocoHtml")
+	    }
+	}
+	
+	jacocoTestCoverageVerification {
+	    violationRules {
+	        rule {
+	            limit {
+	                minimum = 0.5
+	            }
+	        }
+	
+	        rule {
+	            enabled = false
+	            element = 'CLASS'
+	            includes = ['org.gradle.*']
+	
+	            limit {
+	                counter = 'LINE'
+	                value = 'TOTALCOUNT'
+	                maximum = 0.3
+	            }
+	        }
+	    }
+	}
+
+	test {
+	    jacoco {
+	        append = false
+	        destinationFile = file("$buildDir/jacoco/jacocoTest.exec")
+	        classDumpDir = file("$buildDir/jacoco/classpathdumps")
+	    }
+	}
+	
+	afterEvaluate { project ->
+		test.dependsOn testF
+    }
+	
+	task applicationCodeCoverageReport(type:JacocoReport){
+	    executionData run
+	    sourceSets sourceSets.main
+	}
+}
+
+
