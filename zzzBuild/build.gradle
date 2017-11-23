@@ -1,9 +1,38 @@
 import com.smarttrade.test.CoreTest;
+//import com.smarttrade.test.MyJacocoPlugin;
 
 buildscript {
     repositories {
         mavenLocal()
         jcenter()
+      	maven {
+            url "https://plugins.gradle.org/m2/"
+        }
+	}
+	
+	dependencies {
+		classpath 'com.smarttrade.builders:stdocplugin:4.0.0.0-CCHOTest'
+		//classpath "org.sonarsource.scanner.gradle:sonarqube-gradle-plugin:2.6.1"
+		//classpath group: 'org.sonarsource.scanner.gradle', name: 'sonarqube-gradle-plugin', version:'2.5'
+		classpath group: 'org.sonarsource.scanner.gradle', name: 'sonarqube-gradle-plugin', version:'2.6.1'
+		
+	}
+}
+
+apply plugin: 'org.sonarqube'
+
+sonarqube {
+	properties {
+		property "sonar.projectName", "cchoSonarProject"
+		property "sonar.projectKey", "cchoSonarKey"
+		property "sonar.host.url", "http://localhost:9000"
+		property 'sonar.login', "admin"
+		property 'sonar.password', "admin"
+		property "sonar.jacoco.reportPath", "${project.buildDir}/jacoco/jacocoMerge.exec"
+		//property "sonar.junit.reportsPath", "${project.buildDir}/test-results/"
+		//property "sonar.exclusions", "*"
+		//property "sonar.test.exclusions", "*"
+		//property "sonar.coverage.exclusions", "*"
 	}
 }
 
@@ -11,6 +40,7 @@ allprojects {
 	apply plugin: 'java'	
 	apply plugin: 'maven-publish'
 	apply plugin: 'groovy'
+	apply plugin: 'jacoco'
 	
 	project.group = 'gradleDemo'
 	project.version = '1.0.0.0'
@@ -24,8 +54,15 @@ allprojects {
     }
 
 }
+import java.util.concurrent.Callable;
 
 subprojects {
+	println  "Root project:   "+ project.rootProject;
+    println  "  rootDir:      "+ project.rootDir;
+    println  "  projectDir:   "+ project.projectDir;
+    println  "  buildDir:   "+ project.buildDir;
+    println  "  project dir:  "+ System.getProperty("user.dir");
+    
 	println 'subprojects->begin: ' + project.name
 	
 	task testFF {
@@ -53,6 +90,50 @@ subprojects {
 	}
 	
 	println 'subprojects->end: ' + project.name
+	
+	tasks.whenTaskAdded { addedTask ->
+		println 'task added: ' + addedTask.name
+	}
+	
+	sonarqube {
+		properties {
+			//property "sonar.java.binaries","${project.buildDir}/classes/java"
+			//property "sonar.sources","src/main/java"
+		}
+	}
+	
+	jacocoTestReport {
+   		group = "Reporting"
+    	description = "Generates Jacoco coverage reports for unit tests"
+    	executionData = fileTree("$buildDir/jacoco").matching  { 
+			include "*.exec"
+		}
+    	
+	    reports {
+	        xml.enabled false
+	        csv.enabled false
+	        html.destination file("${buildDir}/jacocoHtml")
+	    }
+	}
+}
+
+task jacocoMerge (type: JacocoMerge) {
+	executionData = files(subprojects.jacocoTestReport.executionData)
+	println "@Exec: " + executionData.getFiles()
+	destinationFile = file(project.getRootProject().getBuildDir().toString() + "/jacoco/jacocoMerge.exec")
+}
+
+task jacocoRootReport(type: org.gradle.testing.jacoco.tasks.JacocoReport) {
+    //dependsOn = subprojects.test
+    additionalSourceDirs = files(subprojects.sourceSets.main.allSource.srcDirs)
+    sourceDirectories = files(subprojects.sourceSets.main.allSource.srcDirs)
+    classDirectories =  files(subprojects.sourceSets.main.output)
+    executionData = files(subprojects.jacocoTestReport.executionData)
+    reports {
+        html.enabled = true
+        xml.enabled = true
+        csv.enabled = false
+    }
 }
 
 publishing {
@@ -169,64 +250,11 @@ greeting {
     outputFiles = files('a.txt', 'b.txt')
 }
 
-subprojects {
-	apply plugin: "application"
-	
-	apply plugin: "jacoco"
-	mainClassName = "org.gradle.MyMain"	
+task testF
 
-	jacoco {
-	    applyTo run
-	    //toolVersion = "0.7.9"
-	    //reportsDir $buildDir/reports/jacoco
-	}
-
-	jacocoTestReport {
-	    reports {
-	        xml.enabled false
-	        csv.enabled false
-	        html.destination file("${buildDir}/jacocoHtml")
-	    }
-	}
-	
-	jacocoTestCoverageVerification {
-	    violationRules {
-	        rule {
-	            limit {
-	                minimum = 0.5
-	            }
-	        }
-	
-	        rule {
-	            enabled = false
-	            element = 'CLASS'
-	            includes = ['org.gradle.*']
-	
-	            limit {
-	                counter = 'LINE'
-	                value = 'TOTALCOUNT'
-	                maximum = 0.3
-	            }
-	        }
-	    }
-	}
-
-	test {
-	    jacoco {
-	        append = false
-	        destinationFile = file("$buildDir/jacoco/jacocoTest.exec")
-	        classDumpDir = file("$buildDir/jacoco/classpathdumps")
-	    }
-	}
-	
-	afterEvaluate { project ->
-		test.dependsOn testF
-    }
-	
-	task applicationCodeCoverageReport(type:JacocoReport){
-	    executionData run
-	    sourceSets sourceSets.main
+allprojects {
+	task cleanJacoco(type: Delete) {
+	  delete "$buildDir/jacoco", "$buildDir/reports/jacoco"
+	  followSymlinks = true
 	}
 }
-
-
