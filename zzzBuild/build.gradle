@@ -121,6 +121,31 @@ task jacocoMerge (type: JacocoMerge) {
 	destinationFile = file(project.getRootProject().getBuildDir().toString() + "/jacoco/jacocoMerge.exec")
 }
 
+task jacocoMerge1 (type: JacocoMerge) {
+	executionData = files(subprojects.jacocoTestReport.executionData).filter {
+		it.name.equals('testF.exec')
+	}
+	println "@Exec: " + executionData.getFiles()
+	destinationFile = file(project.getRootProject().getBuildDir().toString() + "/jacoco/jacocoMerge1.exec")
+}
+
+task jacocoMerge2 (type: JacocoMerge) {
+	executionData = files(subprojects.jacocoTestReport.executionData).filter {
+		it.name.equals('testF1.exec')
+	}
+	println "@Exec: " + executionData.getFiles()
+	destinationFile = file(project.getRootProject().getBuildDir().toString() + "/jacoco/jacocoMerge2.exec")
+}
+
+task jacocoMergex (type: JacocoMerge) {
+	executionData = fileTree("$buildDir/jacoco").matching  { 
+		include "*.exec"
+		exclude "jacocoMerge.exec"
+	}
+	println "@Exec: " + executionData.getFiles()
+	destinationFile = file("$buildDir/jacoco/jacocoMerge.exec")
+}
+
 task jacocoRootReport(type: org.gradle.testing.jacoco.tasks.JacocoReport) {
     //dependsOn = subprojects.test
     additionalSourceDirs = files(subprojects.sourceSets.main.allSource.srcDirs)
