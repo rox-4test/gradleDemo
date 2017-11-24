@@ -36,6 +36,18 @@ task testF (type: CoreTest) {
     }
 }
 
+task testF1 (type: CoreTest) {
+	println 'self@testF'
+    classpath = configurations.testBaseRuntime
+    //include '**/*TestSuite.class'
+    include 'gradleDemo/test1/Test1TestSuite.class'
+    //jvmArgs '-Xdebug','-Xrunjdwp:transport=dt_socket,server=y,suspend=y,address=10999'
+    skipIfNoTestFound = true
+    doLast {
+    	println '@zzzTest1#testF executed'
+    }
+}
+
 task testF2 (type: CoreTest) {
 	println 'self@testF'
     classpath = configurations.testBaseRuntime

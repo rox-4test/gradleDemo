@@ -248,8 +248,6 @@ greeting {
     outputFiles = files('a.txt', 'b.txt')
 }
 
-task testF
-
 allprojects {
 	task cleanJacoco(type: Delete) {
 	  delete "$buildDir/jacoco", "$buildDir/reports/jacoco"
