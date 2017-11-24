@@ -1,36 +1,9 @@
 import com.smarttrade.test.CoreTest;
-//import com.smarttrade.test.MyJacocoPlugin;
 
 buildscript {
     repositories {
         mavenLocal()
         jcenter()
-      	//maven {
-        //    url "https://plugins.gradle.org/m2/"
-        //}
-	}
-	
-	dependencies {
-		//classpath 'com.smarttrade.builders:stdocplugin:4.0.0.0-CCHOTest'
-		//classpath "org.sonarsource.scanner.gradle:sonarqube-gradle-plugin:2.6.1"
-		classpath group: 'org.sonarsource.scanner.gradle', name: 'sonarqube-gradle-plugin', version:'2.5'
-	}
-}
-
-apply plugin: 'org.sonarqube'
-
-sonarqube {
-	properties {
-		property "sonar.projectName", "cchoSonarProject"
-		property "sonar.projectKey", "cchoSonarKey"
-		property "sonar.host.url", "http://localhost:9000"
-		property 'sonar.login', "admin"
-		property 'sonar.password', "admin"
-		property "sonar.jacoco.reportPath", "${project.buildDir}/jacoco/jacocoMerge.exec"
-		//property "sonar.junit.reportsPath", "${project.buildDir}/test-results/"
-		//property "sonar.exclusions", "*"
-		//property "sonar.test.exclusions", "*"
-		//property "sonar.coverage.exclusions", "*"
 	}
 }
 
@@ -38,7 +11,6 @@ allprojects {
 	apply plugin: 'java'	
 	apply plugin: 'maven-publish'
 	apply plugin: 'groovy'
-	apply plugin: 'jacoco'
 	
 	project.group = 'gradleDemo'
 	project.version = '1.0.0.0'
@@ -52,15 +24,8 @@ allprojects {
     }
 
 }
-import java.util.concurrent.Callable;
 
 subprojects {
-	println  "Root project:   "+ project.rootProject;
-    println  "  rootDir:      "+ project.rootDir;
-    println  "  projectDir:   "+ project.projectDir;
-    println  "  buildDir:   "+ project.buildDir;
-    println  "  project dir:  "+ System.getProperty("user.dir");
-    
 	println 'subprojects->begin: ' + project.name
 	
 	task testFF {
@@ -88,50 +53,6 @@ subprojects {
 	}
 	
 	println 'subprojects->end: ' + project.name
-	
-	tasks.whenTaskAdded { addedTask ->
-		println 'task added: ' + addedTask.name
-	}
-	
-	sonarqube {
-		properties {
-			//property "sonar.java.binaries","${project.buildDir}/classes/java"
-			//property "sonar.sources","src/main/java"
-		}
-	}
-	
-	jacocoTestReport {
-   		group = "Reporting"
-    	description = "Generates Jacoco coverage reports for unit tests"
-    	executionData = fileTree("$buildDir/jacoco").matching  { 
-			include "*.exec"
-		}
-    	
-	    reports {
-	        xml.enabled false
-	        csv.enabled false
-	        html.destination file("${buildDir}/jacocoHtml")
-	    }
-	}
-}
-
-task jacocoMerge (type: JacocoMerge) {
-	executionData = files(subprojects.jacocoTestReport.executionData)
-	println "@Exec: " + executionData.getFiles()
-	destinationFile = file(project.getRootProject().getBuildDir().toString() + "/jacoco/jacocoMerge.exec")
-}
-
-task jacocoRootReport(type: org.gradle.testing.jacoco.tasks.JacocoReport) {
-    //dependsOn = subprojects.test
-    additionalSourceDirs = files(subprojects.sourceSets.main.allSource.srcDirs)
-    sourceDirectories = files(subprojects.sourceSets.main.allSource.srcDirs)
-    classDirectories =  files(subprojects.sourceSets.main.output)
-    executionData = files(subprojects.jacocoTestReport.executionData)
-    reports {
-        html.enabled = true
-        xml.enabled = true
-        csv.enabled = false
-    }
 }
 
 publishing {
@@ -198,61 +119,3 @@ task taskY << {
 }
 
 taskX.finalizedBy taskY
-
-class GreetingPlugin implements Plugin<Project> {
-    void apply(Project project) {
-        def extension = project.extensions.create('greeting', GreetingPluginExtension, project)
-        project.tasks.create('hello', Greeting) {
-            message = extension.message
-            outputFiles = extension.outputFiles
-        }
-    }
-}
-
-class GreetingPluginExtension {
-    final PropertyState<String> message
-    final ConfigurableFileCollection outputFiles
-
-    GreetingPluginExtension(Project project) {
-        message = project.property(String)
-        message.set('Hello from GreetingPlugin')
-        outputFiles = project.files()
-    }
-
-    void setOutputFiles(FileCollection outputFiles) {
-        this.outputFiles.setFrom(outputFiles)
-    }
-    
-    void setMessage(String message) {
-        this.message.set(message)
-    }
-}
-
-class Greeting extends DefaultTask {
-    PropertyState<String> message = project.property(String)
-    ConfigurableFileCollection outputFiles = project.files()
-
-    @TaskAction
-    void printMessage() {
-        outputFiles.each {
-            logger.quiet "Writing message 'Hi from Gradle' to file"
-            it.text = message.get()
-        }
-    }
-}
-
-apply plugin: GreetingPlugin
-
-greeting {
-    message = 'Hi from Gradle'
-    outputFiles = files('a.txt', 'b.txt')
-}
-
-task testF
-
-allprojects {
-	task cleanJacoco(type: Delete) {
-	  delete "$buildDir/jacoco", "$buildDir/reports/jacoco"
-	  followSymlinks = true
-	}
-}
