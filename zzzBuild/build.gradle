@@ -11,7 +11,7 @@ buildscript {
 	}
 	
 	dependencies {
-		classpath 'com.smarttrade.builders:stdocplugin:4.0.0.0-CCHOTest'
+		//classpath 'com.smarttrade.builders:stdocplugin:4.0.0.0-CCHOTest'
 		//classpath "org.sonarsource.scanner.gradle:sonarqube-gradle-plugin:2.6.1"
 		//classpath group: 'org.sonarsource.scanner.gradle', name: 'sonarqube-gradle-plugin', version:'2.5'
 		classpath group: 'org.sonarsource.scanner.gradle', name: 'sonarqube-gradle-plugin', version:'2.6.1'
