@@ -27,7 +27,7 @@ sonarqube {
 		property "sonar.host.url", "http://localhost:9000"
 		property 'sonar.login', "admin"
 		property 'sonar.password', "admin"
-		property "sonar.jacoco.reportPath", "${project.buildDir}/jacoco/jacocoMerge.exec"
+		property "sonar.jacoco.reportPaths", "${project.buildDir}/jacoco/jacocoMerge.exec"
 		//property "sonar.junit.reportsPath", "${project.buildDir}/test-results/"
 		//property "sonar.exclusions", "*"
 		//property "sonar.test.exclusions", "*"
