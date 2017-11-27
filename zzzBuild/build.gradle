@@ -39,7 +39,7 @@ allprojects {
 	apply plugin: 'java'	
 	apply plugin: 'maven-publish'
 	apply plugin: 'groovy'
-	apply plugin: 'jacoco'
+	//apply plugin: 'jacoco'
 	
 	project.group = 'gradleDemo'
 	project.version = '1.0.0.0'
@@ -118,6 +118,7 @@ subprojects {
 		}
 	}
 	
+	/*
 	jacocoTestReport {
    		group = "Reporting"
     	description = "Generates Jacoco coverage reports for unit tests"
@@ -131,8 +132,10 @@ subprojects {
 	        html.destination file("${buildDir}/jacocoHtml")
 	    }
 	}
+	*/
 }
 
+/*
 task jacocoMerge (type: JacocoMerge) {
 	executionData = files(subprojects.jacocoTestReport.executionData)
 	println "@Exec: " + executionData.getFiles()
@@ -176,7 +179,7 @@ task jacocoRootReport(type: org.gradle.testing.jacoco.tasks.JacocoReport) {
         csv.enabled = false
     }
 }
-
+*/
 publishing {
 	publications {
         mavenJava(MavenPublication) {
