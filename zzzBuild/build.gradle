@@ -21,6 +21,7 @@ apply plugin: 'org.sonarqube'
 
 sonarqube {
 	properties {
+		property "sonar.projectBaseDir", "$projectDir/.."
 		property "sonar.projectName", "cchoSonarProject"
 		property "sonar.projectKey", "cchoSonarKey"
 		property "sonar.host.url", "http://localhost:9000"
