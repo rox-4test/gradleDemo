@@ -13,7 +13,7 @@ buildscript {
 	dependencies {
 		//classpath 'com.smarttrade.builders:stdocplugin:4.0.0.0-CCHOTest'
 		//classpath "org.sonarsource.scanner.gradle:sonarqube-gradle-plugin:2.6.1"
-		classpath group: 'org.sonarsource.scanner.gradle', name: 'sonarqube-gradle-plugin', version:'2.5'
+		classpath group: 'org.sonarsource.scanner.gradle', name: 'sonarqube-gradle-plugin', version:'2.6.1'
 	}
 }
 
@@ -31,6 +31,7 @@ sonarqube {
 		//property "sonar.exclusions", "*"
 		//property "sonar.test.exclusions", "*"
 		//property "sonar.coverage.exclusions", "*"
+		property "sonar.projectBaseDir", "$projectDir/.."
 	}
 }
 
@@ -93,6 +94,23 @@ subprojects {
 		println 'task added: ' + addedTask.name
 	}
 	
+	afterEvaluate { project ->		
+		def list = project.rootProject.tasks.sonarqube.dependsOn.find { depend ->	depend instanceof Callable<Iterable<? extends Task>>}
+		list.each { depend ->
+			project.rootProject.tasks.sonarqube.dependsOn.remove(depend)
+		}
+		
+		project.rootProject.tasks.sonarqube.dependsOn compileJava
+		
+//		if(!project.name.equals('appender')) {
+//			  project.sonarqube {
+//				  skipProject = true
+//			  }
+//		} else {
+//			project.rootProject.tasks.sonarqube.dependsOn project.tasks.testClasses
+//		}
+	}
+	
 	sonarqube {
 		properties {
 			//property "sonar.java.binaries","${project.buildDir}/classes/java"
@@ -148,8 +166,8 @@ task jacocoMergex (type: JacocoMerge) {
 
 task jacocoRootReport(type: org.gradle.testing.jacoco.tasks.JacocoReport) {
     //dependsOn = subprojects.test
-    additionalSourceDirs = files(subprojects.sourceSets.main.allSource.srcDirs)
-    sourceDirectories = files(subprojects.sourceSets.main.allSource.srcDirs)
+	additionalSourceDirs = files(subprojects.sourceSets.main.allSource.srcDirs).filter { !it.path.contains("src-generated") }
+    sourceDirectories = files(subprojects.sourceSets.main.allSource.srcDirs).filter { !it.path.contains("src-generated") }
     classDirectories =  files(subprojects.sourceSets.main.output)
     executionData = files(subprojects.jacocoTestReport.executionData)
     reports {
