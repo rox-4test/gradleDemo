@@ -13,7 +13,7 @@ buildscript {
 	dependencies {
 		//classpath 'com.smarttrade.builders:stdocplugin:4.0.0.0-CCHOTest'
 		//classpath "org.sonarsource.scanner.gradle:sonarqube-gradle-plugin:2.6.1"
-		classpath group: 'org.sonarsource.scanner.gradle', name: 'sonarqube-gradle-plugin', version:'2.5'
+		classpath group: 'org.sonarsource.scanner.gradle', name: 'sonarqube-gradle-plugin', version:'2.6.1'
 	}
 }
 
@@ -21,7 +21,6 @@ apply plugin: 'org.sonarqube'
 
 sonarqube {
 	properties {
-		property "sonar.projectBaseDir", "$projectDir/.."
 		property "sonar.projectName", "cchoSonarProject"
 		property "sonar.projectKey", "cchoSonarKey"
 		property "sonar.host.url", "http://localhost:9000"
@@ -29,9 +28,10 @@ sonarqube {
 		property 'sonar.password', "admin"
 		property "sonar.jacoco.reportPaths", "${project.buildDir}/jacoco/jacocoMerge.exec"
 		//property "sonar.junit.reportsPath", "${project.buildDir}/test-results/"
-		//property "sonar.exclusions", "*"
-		//property "sonar.test.exclusions", "*"
-		//property "sonar.coverage.exclusions", "*"
+		property "sonar.exclusions", "**/src-generated/**/*"
+		property "sonar.test.exclusions", "**/src-generated/**/*"
+		property "sonar.coverage.exclusions", "**/src-generated/**"
+		property "sonar.projectBaseDir", "$projectDir/.."
 	}
 }
 
@@ -39,7 +39,7 @@ allprojects {
 	apply plugin: 'java'	
 	apply plugin: 'maven-publish'
 	apply plugin: 'groovy'
-	//apply plugin: 'jacoco'
+	apply plugin: 'jacoco'
 	
 	project.group = 'gradleDemo'
 	project.version = '1.0.0.0'
@@ -94,6 +94,23 @@ subprojects {
 		println 'task added: ' + addedTask.name
 	}
 	
+	afterEvaluate { project ->		
+		def list = project.rootProject.tasks.sonarqube.dependsOn.find { depend ->	depend instanceof Callable<Iterable<? extends Task>>}
+		list.each { depend ->
+			project.rootProject.tasks.sonarqube.dependsOn.remove(depend)
+		}
+		
+		project.rootProject.tasks.sonarqube.dependsOn compileJava
+		
+//		if(!project.name.equals('appender')) {
+//			  project.sonarqube {
+//				  skipProject = true
+//			  }
+//		} else {
+//			project.rootProject.tasks.sonarqube.dependsOn project.tasks.testClasses
+//		}
+	}
+	
 	sonarqube {
 		properties {
 			//property "sonar.java.binaries","${project.buildDir}/classes/java"
@@ -101,7 +118,6 @@ subprojects {
 		}
 	}
 	
-	/*
 	jacocoTestReport {
    		group = "Reporting"
     	description = "Generates Jacoco coverage reports for unit tests"
@@ -115,10 +131,8 @@ subprojects {
 	        html.destination file("${buildDir}/jacocoHtml")
 	    }
 	}
-	*/
 }
 
-/*
 task jacocoMerge (type: JacocoMerge) {
 	executionData = files(subprojects.jacocoTestReport.executionData)
 	println "@Exec: " + executionData.getFiles()
@@ -152,8 +166,8 @@ task jacocoMergex (type: JacocoMerge) {
 
 task jacocoRootReport(type: org.gradle.testing.jacoco.tasks.JacocoReport) {
     //dependsOn = subprojects.test
-    additionalSourceDirs = files(subprojects.sourceSets.main.allSource.srcDirs)
-    sourceDirectories = files(subprojects.sourceSets.main.allSource.srcDirs)
+	additionalSourceDirs = files(subprojects.sourceSets.main.allSource.srcDirs).filter { !it.path.contains("src-generated") }
+    sourceDirectories = files(subprojects.sourceSets.main.allSource.srcDirs).filter { !it.path.contains("src-generated") }
     classDirectories =  files(subprojects.sourceSets.main.output)
     executionData = files(subprojects.jacocoTestReport.executionData)
     reports {
@@ -162,7 +176,7 @@ task jacocoRootReport(type: org.gradle.testing.jacoco.tasks.JacocoReport) {
         csv.enabled = false
     }
 }
-*/
+
 publishing {
 	publications {
         mavenJava(MavenPublication) {
