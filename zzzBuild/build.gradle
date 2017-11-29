@@ -164,7 +164,7 @@ task jacocoMergex (type: JacocoMerge) {
 	destinationFile = file("$buildDir/jacoco/jacocoMerge.exec")
 }
 
-task jacocoRootReport(type: org.gradle.testing.jacoco.tasks.JacocoReport) {
+task jacocoReport(type: org.gradle.testing.jacoco.tasks.JacocoReport) {
     //dependsOn = subprojects.test
 	additionalSourceDirs = files(subprojects.sourceSets.main.allSource.srcDirs).filter { !it.path.contains("src-generated") }
     sourceDirectories = files(subprojects.sourceSets.main.allSource.srcDirs).filter { !it.path.contains("src-generated") }
