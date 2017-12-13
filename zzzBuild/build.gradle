@@ -21,8 +21,8 @@ apply plugin: 'org.sonarqube'
 
 sonarqube {
 	properties {
-		property "sonar.projectName", "cchoSonarProject"
-		property "sonar.projectKey", "cchoSonarKey"
+		property "sonar.projectName", "cchoSonarProject1"
+		property "sonar.projectKey", "cchoSonarKey1"
 		property "sonar.host.url", "http://localhost:9000"
 		property 'sonar.login', "admin"
 		property 'sonar.password', "admin"
@@ -35,6 +35,9 @@ sonarqube {
 	}
 }
 
+afterEvaluate {
+	println '@END: ' + project.name
+}
 allprojects {
 	apply plugin: 'java'	
 	apply plugin: 'maven-publish'
@@ -50,12 +53,40 @@ allprojects {
 	}
 	
 	afterEvaluate { project ->
+		println '@EEE: ' + project.name
     }
 
 }
 import java.util.concurrent.Callable;
 
+def ignoredCoverageProjects = ['']
+
+
 subprojects {
+	
+	sourceSets{
+		main {
+			java {
+				srcDirs += project.file("src-generated/main/java")
+			}
+			resources {
+				srcDirs += project.file("src-generated/main/resources")
+				srcDirs += project.file("src-generated/main/spec")
+				srcDirs += project.file("src/main/spec")
+			}
+		}
+		test {
+			java {
+				srcDirs += project.file("src-generated/test/java");
+			}
+			resources {
+				srcDirs += project.file("src-generated/test/resources")
+				srcDirs += project.file("src-generated/test/spec")
+				srcDirs += project.file("src/test/spec")
+			}
+		}
+	}
+	
 	println  "Root project:   "+ project.rootProject;
     println  "  rootDir:      "+ project.rootDir;
     println  "  projectDir:   "+ project.projectDir;
@@ -109,6 +140,7 @@ subprojects {
 //		} else {
 //			project.rootProject.tasks.sonarqube.dependsOn project.tasks.testClasses
 //		}
+
 	}
 	
 	sonarqube {
@@ -118,6 +150,24 @@ subprojects {
 		}
 	}
 	
+	//sonar coverage exclusions
+	project.ext.sonar_coverage_exclusions = ["**/src-generated/**"]
+	project.ext.additional_sonar_coverage_exclusions = []
+	
+	if (ignoredCoverageProjects.contains(project.name)) {
+		sonarqube {
+			properties {
+				property "sonar.coverage.exclusions", "**"
+			}
+		}
+	} else {
+		sonarqube {
+			properties {
+				property "sonar.coverage.exclusions", sonar_coverage_exclusions << additional_sonar_coverage_exclusions
+			}
+		}
+	}
+		
 	jacocoTestReport {
    		group = "Reporting"
     	description = "Generates Jacoco coverage reports for unit tests"

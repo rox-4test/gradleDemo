@@ -21,7 +21,9 @@ afterEvaluate { subproject ->
 	println 'afterEvaluate@self  -> ' + subproject.name
 }
 	
-	
+
+additional_sonar_coverage_exclusions = ["**/test1b/**"]
+
 println 'Self@: ' + project.name
 
 task testF (type: CoreTest) {

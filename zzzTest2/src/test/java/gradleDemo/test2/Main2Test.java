@@ -13,6 +13,7 @@ public class Main2Test {
 	public void testMain2() {
 		System.out.println("@@@testMain2!!!!");
 		Main.main(null);
-//		throw new RuntimeException("FAILED");
+		Main2Generated.main(null);
+		// throw new RuntimeException("FAILED");
 	}
 }

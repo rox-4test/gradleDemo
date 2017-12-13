@@ -11,6 +11,9 @@ public class Main1Test {
 	public void testMain1() {
 		System.out.println("@@@testMain1!!!!");
 		Main1.main(null);
-//		throw new RuntimeException("FAILED");
+		gradleDemo.test1b.Main.main(null);
+		Main1Generated.main(null);
+		Main1TestGenerated.main(null);
+		// throw new RuntimeException("FAILED");
 	}
 }
