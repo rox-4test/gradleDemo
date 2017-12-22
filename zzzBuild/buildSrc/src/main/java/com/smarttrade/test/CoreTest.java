@@ -8,8 +8,11 @@ import org.gradle.api.Action;
 import org.gradle.api.Project;
 import org.gradle.api.Task;
 import org.gradle.api.artifacts.Configuration;
+import org.gradle.api.file.FileCollection;
 import org.gradle.api.internal.AbstractTask;
+import org.gradle.api.tasks.SourceSet;
 import org.gradle.api.tasks.SourceSetContainer;
+import org.gradle.api.tasks.SourceSetOutput;
 import org.gradle.api.tasks.TaskAction;
 import org.gradle.api.tasks.testing.Test;
 
@@ -60,14 +63,14 @@ public class CoreTest extends Test {
 					throw new RuntimeException(warnMessage);
 				}
 			}
+			getLogger().quiet("@Tests: " + testTask.getCandidateClassFiles().getFiles());
 		}
 	}
 
-	@SuppressWarnings("deprecation")
 	public void mainSourceSet(boolean fromMainSourceSet) {
 		if (fromMainSourceSet) {
-			SourceSetContainer srcSetContainer = (SourceSetContainer) getProject().findProperty("sourceSets");
-			setTestClassesDir(srcSetContainer.getByName("main").getOutput().getClassesDir());
+			final SourceSetContainer srcSetContainer = (SourceSetContainer) getProject().findProperty("sourceSets");
+			setTestClassesDirs(srcSetContainer.getByName("main").getOutput().getClassesDirs());
 		}
 	}
 

@@ -347,3 +347,68 @@ allprojects {
 	  followSymlinks = true
 	}
 }
+
+def ignoredTestUFiles = [zzzTest1:['Test1bTestSuite1111.class'], zzzTest2:['Test2TestSuite1111.class']]
+
+task test_unit_p(type: Test) {
+	outputs.upToDateWhen { false }
+	maxParallelForks = 4
+	include '**/*TestSuite.class'
+	classpath = files(subprojects.sourceSets.test.runtimeClasspath)
+	testClassesDirs = files(subprojects.sourceSets.test.output.classesDirs)
+	
+	//filter some tests
+	subprojects.each { project ->
+		if(ignoredTestUFiles.containsKey(project.name)) { 
+			ignoredTestUFiles[project.name].each { exclude("**/$it") }
+		}
+	}
+	
+	/*
+	subprojects.sourceSets.test.runtimeClasspath.each {
+		println '@AAA: ' + it
+		it.each { File file ->
+			println file
+		}
+	}
+	subprojects.sourceSets.main.output.classesDirs.each {
+		println '@BBB: ' + it
+		it.each { File file ->
+			println file
+		}
+	}
+	*/	
+}
+
+task test_unit
+task test_functional
+
+task reportTestU(type: TestReport) {
+	destinationDir = file("$buildDir/junit_reports")
+	
+	subprojects.each { project ->
+		reportOn project.file('build/test-results/testU/bin')
+	}
+}
+
+subprojects {
+	CoreTest testUTask = tasks.create('testU_' + project.name , CoreTest.class)
+	testUTask.skipIfNoTestFound = false
+	testUTask.classpath = sourceSets.test.runtimeClasspath
+	testUTask.include('**/*TestSuite.class')
+	
+	if(ignoredTestUFiles.containsKey(project.name)) ignoredTestUFiles[project.name].each { testUTask.exclude("**/$it") }
+	
+	test.dependsOn testUTask
+	
+	testUTask.binResultsDir = project.file('build/test-results/testU/bin')
+	test.enabled = false
+	
+	//-Dorg.gradle.debug=true
+	//testUTask.jvmArgs '-Xdebug','-Xrunjdwp:transport=dt_socket,server=y,suspend=y,address=10999'
+}
+
+subprojects {
+	project.rootProject.tasks.test_unit.dependsOn project.tasks.matching {it.name.startsWith('testU') }
+	project.rootProject.tasks.test_functional.dependsOn project.tasks.matching {it.name.startsWith('testF') }
+}

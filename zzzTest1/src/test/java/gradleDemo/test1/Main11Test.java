@@ -7,13 +7,13 @@ import org.junit.runner.RunWith;
 import org.junit.runners.JUnit4;
 
 @RunWith(JUnit4.class)
-public class Main1Test {
+public class Main11Test {
 
 	@Test
-	public void testMain1() throws InterruptedException {
-		System.out.println("@@@testMain1#id: " + System.getProperty("org.gradle.test.worker") + " / "
+	public void testMain11() throws InterruptedException {
+		System.out.println("@@@testMain11#id: " + System.getProperty("org.gradle.test.worker") + " / "
 				+ ManagementFactory.getRuntimeMXBean().getName());
-		Main1.main(null);
+		Main11.main(null);
 		Main1Generated.main(null);
 		Main1TestGenerated.main(null);
 		Thread.sleep(5000);

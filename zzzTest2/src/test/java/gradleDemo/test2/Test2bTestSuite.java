@@ -7,7 +7,7 @@
  *
  *============================================================================*/
 
-package gradleDemo.test1;
+package gradleDemo.test2;
 
 import org.junit.runner.RunWith;
 import org.junit.runners.Suite;
@@ -15,7 +15,7 @@ import org.junit.runners.Suite.SuiteClasses;
 
 @RunWith(Suite.class)
 @SuiteClasses(value = { //
-		Main1Test.class, Main11Test.class })
-public class Test1TestSuite {
+		Main2bTest.class })
+public class Test2bTestSuite {
 
 }
