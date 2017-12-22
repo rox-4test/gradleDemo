@@ -348,14 +348,23 @@ allprojects {
 	}
 }
 
+def testedProjects = ['zzzTest1', 'zzzTest2']
 def ignoredTestUFiles = [zzzTest1:['Test1bTestSuite1111.class'], zzzTest2:['Test2TestSuite1111.class']]
 
 task test_unit_p(type: Test) {
 	outputs.upToDateWhen { false }
-	maxParallelForks = 4
+	maxParallelForks = Runtime.runtime.availableProcessors() / 2
+	println '@maxParallelForks: ' + maxParallelForks
 	include '**/*TestSuite.class'
-	classpath = files(subprojects.sourceSets.test.runtimeClasspath)
-	testClassesDirs = files(subprojects.sourceSets.test.output.classesDirs)
+	
+	subprojects.each { project ->
+		if (testedProjects.contains('*') || testedProjects.contains(project.name)) {
+			classpath += project.sourceSets.test.runtimeClasspath
+			testClassesDirs += project.sourceSets.test.output.classesDirs
+		} 
+	}
+	//classpath = files(subprojects.sourceSets.test.runtimeClasspath)
+	//testClassesDirs = files(subprojects.sourceSets.test.output.classesDirs)
 	
 	//filter some tests
 	subprojects.each { project ->
