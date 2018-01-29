@@ -94,9 +94,39 @@ public class CoreTest extends Test {
 		c.add("-XX:+UseConcMarkSweepGC");
 		c.add("-verbose:gc");
 		c.add("-Xloggc:" + getFileName() + "_gc.log");
-		c.add("-XX:+PrintGCDateStamps");
+		
+		/*
+		 * Unrecognized VM option 'PrintGCDateStamps'
+Error: Could not create the Java Virtual Machine.
+Error: A fatal exception has occurred. Program will exit.
+[0.001s][warning][gc] -Xloggc is deprecated. Will use -Xlog:gc:testU_zzzTest1_gc.log instead.
+Java HotSpot(TM) 64-Bit Server VM warning: Option UseConcMarkSweepGC was deprecated in version 9.0 and will likely be removed in a future release.
+Unrecognized VM option 'PrintGCDateStamps'
+Error: Could not create the Java Virtual Machine.
+Error: A fatal exception has occurred. Program will exit.
+Process 'Gradle Test Executor 4' finished with non-zero exit value 1
+
+Error: Could not create the Java Virtual Machine.
+Error: A fatal exception has occurred. Program will exit.
+[0.001s][warning][gc] -Xloggc is deprecated. Will use -Xlog:gc:testU_zzzTest1_gc.log instead.
+Java HotSpot(TM) 64-Bit Server VM warning: Option UseConcMarkSweepGC was deprecated in version 9.0 and will likely be removed in a future release.
+Unrecognized VM option 'PrintGCTimeStamps'
+Error: Could not create the Java Virtual Machine.
+Error: A fatal exception has occurred. Program will exit.
+Process 'Gradle Test Executor 3' finished with non-zero exit value 1
+
+
+*/
+//		c.add("-XX:+PrintGCDateStamps");
+//		c.add("-XX:+PrintGCTimeStamps");
+		
+		/*
+		[0.001s][warning][gc] -Xloggc is deprecated. Will use -Xlog:gc:testU_zzzTest2_gc.log instead.
+		[0.001s][warning][gc] -XX:+PrintGCDetails is deprecated. Will use -Xlog:gc* instead.
+		[0.014s][info   ][gc] Using Concurrent Mark Sweep
+		Java HotSpot(TM) 64-Bit Server VM warning: Option UseConcMarkSweepGC was deprecated in version 9.0 and will likely be removed in a future release.
+		*/
 		c.add("-XX:+PrintGCDetails");
-		c.add("-XX:+PrintGCTimeStamps");
 		return c;
 	}
 
