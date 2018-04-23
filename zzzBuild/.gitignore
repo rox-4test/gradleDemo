@@ -2,3 +2,4 @@
 /bin/
 /build/
 /buildSrc/build/
+/buildSrc/.gradle/
