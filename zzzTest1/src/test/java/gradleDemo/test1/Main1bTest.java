@@ -16,6 +16,6 @@ public class Main1bTest {
 		System.out.println("@@@testMain1b#id: " + System.getProperty("org.gradle.test.worker") + " / "
 				+ ManagementFactory.getRuntimeMXBean().getName());
 		Main1b.main(null);
-		Thread.sleep(10000);
+//		Thread.sleep(10000);
 	}
 }

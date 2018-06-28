@@ -1,22 +1,24 @@
+//import com.smarttrade.builders.stbaseplugin.utils.ObfuscationManager
 import com.smarttrade.test.CoreTest;
 //import com.smarttrade.test.MyJacocoPlugin;
 
 buildscript {
-    repositories {
-        mavenLocal()
-        jcenter()
-      	//maven {
-        //    url "https://plugins.gradle.org/m2/"
-        //}
+	repositories {
+		mavenLocal()
+		jcenter()
+		//maven {
+		//    url "https://plugins.gradle.org/m2/"
+		//}
 	}
-	
+
 	dependencies {
 		//classpath 'com.smarttrade.builders:stdocplugin:4.0.0.0-CCHOTest'
 		//classpath "org.sonarsource.scanner.gradle:sonarqube-gradle-plugin:2.6.1"
 		classpath group: 'org.sonarsource.scanner.gradle', name: 'sonarqube-gradle-plugin', version:'2.6.1'
 	}
-}
 
+}
+plugins { id 'base' }
 apply plugin: 'org.sonarqube'
 
 sonarqube {
@@ -35,15 +37,15 @@ sonarqube {
 	}
 }
 
-afterEvaluate {
-	println '@END: ' + project.name
-}
+afterEvaluate { println '@END: ' + project.name }
+
 allprojects {
-	apply plugin: 'java'	
+	apply plugin: 'eclipse'
+	apply plugin: 'java'
 	apply plugin: 'maven-publish'
-	apply plugin: 'groovy'
+//	apply plugin: 'groovy'
 	apply plugin: 'jacoco'
-	
+
 	project.group = 'gradleDemo'
 	project.version = '1.0.0.0'
 
@@ -51,19 +53,36 @@ allprojects {
 		mavenLocal()
 		jcenter()
 	}
-	
-	afterEvaluate { project ->
-		println '@EEE: ' + project.name
-    }
 
+	println '@allprojects@' + project.name
+
+	afterEvaluate { project ->
+		println '@allprojects@afterEvaluate: ' + project.name
+	}
+
+	task taskCommon {
+		doLast { println project.name + '->taskCommon' }
+	}
 }
 import java.util.concurrent.Callable;
+
+import org.gradle.api.Project
+import org.gradle.api.Task
+import org.gradle.api.tasks.Delete
 
 def ignoredCoverageProjects = ['']
 
 
+println '@before subprojects'
+
+task taskRoot { doLast { println 'Hello From Root' } }
 subprojects {
-	
+	if (!project.name.contains('2')) {
+		rootProject.taskCommon.dependsOn project.taskCommon
+	}
+
+	println '-------@subproject@' + project.name
+
 	sourceSets{
 		main {
 			java {
@@ -86,102 +105,134 @@ subprojects {
 			}
 		}
 	}
-	
+
 	println  "Root project:   "+ project.rootProject;
-    println  "  rootDir:      "+ project.rootDir;
-    println  "  projectDir:   "+ project.projectDir;
-    println  "  buildDir:   "+ project.buildDir;
-    println  "  project dir:  "+ System.getProperty("user.dir");
-    
+	println  "  rootDir:      "+ project.rootDir;
+	println  "  projectDir:   "+ project.projectDir;
+	println  "  buildDir:   "+ project.buildDir;
+	println  "  user dir:  "+ System.getProperty("user.dir");
+
 	println 'subprojects->begin: ' + project.name
-	
+
+	task taskRoot {
+
+		doLast { println 'Hello From Root @from: ' + project.name }
+	}
+
 	task testFF {
+		enabled = false
 		println project.name + '@testFF'
 	}
-	
+	testFF.dependsOn taskRoot
+
 	tasks.whenTaskAdded { addedTask ->
 		if(addedTask.name.startsWith('testF')) {
 			project.afterEvaluate {
-				println 'afterEvaluate@@' + project.name + ":" + addedTask.name
+				println '@subprojects@whenTaskAdded@afterEvaluate@@' + project.name + ":" + addedTask.name
 			}
 		}
 	}
-		
+
 	afterEvaluate { subproject ->
-		println 'afterEvaluate@subprojects -> ' + subproject.name
+		println '@subprojects@afterEvaluate@ -> ' + subproject.name
 	}
-	
-	publishing {
-		publications {
-	        mavenJava(MavenPublication) {
-	            from components.java
-	        }
-		}
+
+	gradle.afterProject { subproject, projectState ->
+		println '@subprojects@afterProject@' + subproject.name
+	}
+
+	task sourceJar(type: Jar) {
+		classifier "sources"
 	}
 	
 	println 'subprojects->end: ' + project.name
-	
+
 	tasks.whenTaskAdded { addedTask ->
-		println 'task added: ' + addedTask.name
+		println '@subprojects@whenTaskAdded@: ' + addedTask.name
 	}
+
+	project.ext.extProp = true
 	
-	afterEvaluate { project ->		
+	afterEvaluate { project ->
+		println 'subprojects@afterEvaluate@extProp: ' + extProp
+		println '@subprojects@afterEvaluate2@ -> ' + project.name
+		
+		publishing {
+			publications {
+				mavenJava(MavenPublication) { artifact project.getTasks().findByName('jar') }
+				
+//				maven(MavenPublication) {
+//					artifact sourceJar // Publish the output of the sourceJar task
+//					artifact (project.file('build.gradle')) {
+//						extension ''
+//					}//'my-file-name.jar' Publish a file created outside of the build
+//					artifact source: sourceJar, classifier: 'src', extension: 'zip'
+//				  }
+			}
+	
+			repositories {
+				maven {
+					url project.file("../zzzBuild/bin/arti").toString()
+				}
+			}
+		}
+		
+		project.tasks.getByName('jar').setClassifier('no')
+		
 		def list = project.rootProject.tasks.sonarqube.dependsOn.find { depend ->	depend instanceof Callable<Iterable<? extends Task>>}
 		list.each { depend ->
 			project.rootProject.tasks.sonarqube.dependsOn.remove(depend)
 		}
-		
+
 		project.rootProject.tasks.sonarqube.dependsOn compileJava
-		
-//		if(!project.name.equals('appender')) {
-//			  project.sonarqube {
-//				  skipProject = true
-//			  }
-//		} else {
-//			project.rootProject.tasks.sonarqube.dependsOn project.tasks.testClasses
-//		}
+
+		//		if(!project.name.equals('appender')) {
+		//			  project.sonarqube {
+		//				  skipProject = true
+		//			  }
+		//		} else {
+		//			project.rootProject.tasks.sonarqube.dependsOn project.tasks.testClasses
+		//		}
 
 	}
-	
+
+	println '@extProp: ' + extProp
+
 	sonarqube {
 		properties {
 			//property "sonar.java.binaries","${project.buildDir}/classes/java"
 			//property "sonar.sources","src/main/java"
 		}
 	}
-	
+
 	//sonar coverage exclusions
 	project.ext.sonar_coverage_exclusions = ["**/src-generated/**"]
 	project.ext.additional_sonar_coverage_exclusions = []
-	
+
 	if (ignoredCoverageProjects.contains(project.name)) {
 		sonarqube {
-			properties {
-				property "sonar.coverage.exclusions", "**"
-			}
+			properties { property "sonar.coverage.exclusions", "**" }
 		}
 	} else {
 		sonarqube {
-			properties {
-				property "sonar.coverage.exclusions", sonar_coverage_exclusions << additional_sonar_coverage_exclusions
-			}
+			properties { property "sonar.coverage.exclusions", sonar_coverage_exclusions << additional_sonar_coverage_exclusions }
 		}
 	}
-		
+
 	jacocoTestReport {
-   		group = "Reporting"
-    	description = "Generates Jacoco coverage reports for unit tests"
-    	executionData = fileTree("$buildDir/jacoco").matching  { 
-			include "*.exec"
+		group = "Reporting"
+		description = "Generates Jacoco coverage reports for unit tests"
+		executionData = fileTree("$buildDir/jacoco").matching  {  include "*.exec" }
+
+		reports {
+			xml.enabled false
+			csv.enabled false
+			html.destination file("${buildDir}/jacocoHtml")
 		}
-    	
-	    reports {
-	        xml.enabled false
-	        csv.enabled false
-	        html.destination file("${buildDir}/jacocoHtml")
-	    }
 	}
 }
+
+println '@after subprojects'
 
 task jacocoMerge (type: JacocoMerge) {
 	executionData = files(subprojects.jacocoTestReport.executionData)
@@ -206,7 +257,7 @@ task jacocoMerge2 (type: JacocoMerge) {
 }
 
 task jacocoMergex (type: JacocoMerge) {
-	executionData = fileTree("$buildDir/jacoco").matching  { 
+	executionData = fileTree("$buildDir/jacoco").matching  {
 		include "*.exec"
 		exclude "jacocoMerge.exec"
 	}
@@ -215,137 +266,128 @@ task jacocoMergex (type: JacocoMerge) {
 }
 
 task jacocoReport(type: org.gradle.testing.jacoco.tasks.JacocoReport) {
-    //dependsOn = subprojects.test
+	//dependsOn = subprojects.test
 	additionalSourceDirs = files(subprojects.sourceSets.main.allSource.srcDirs).filter { !it.path.contains("src-generated") }
-    sourceDirectories = files(subprojects.sourceSets.main.allSource.srcDirs).filter { !it.path.contains("src-generated") }
-    classDirectories =  files(subprojects.sourceSets.main.output)
-    executionData = files(subprojects.jacocoTestReport.executionData)
-    reports {
-        html.enabled = true
-        xml.enabled = true
-        csv.enabled = false
-    }
-}
-
-publishing {
-	publications {
-        mavenJava(MavenPublication) {
-            from components.java
-        }
+	sourceDirectories = files(subprojects.sourceSets.main.allSource.srcDirs).filter { !it.path.contains("src-generated") }
+	classDirectories =  files(subprojects.sourceSets.main.output)
+	executionData = files(subprojects.jacocoTestReport.executionData)
+	reports {
+		html.enabled = true
+		xml.enabled = true
+		csv.enabled = false
 	}
 }
 
-dependencies {
-    compile 'org.slf4j:slf4j-api:1.7.21'
+//publishing {
+//	publications {
+//		mavenJava(MavenPublication) { from components.java }
+//	}
+//}
 
-    testCompile 'junit:junit:4.12'
-    testCompile 'org.hamcrest:hamcrest-core:1.3'
+dependencies {
+	compile 'org.slf4j:slf4j-api:1.7.21'
+
+	testCompile 'junit:junit:4.12'
+	testCompile 'org.hamcrest:hamcrest-core:1.3'
 }
 
 
 println 'This is executed during the configuration phase.'
 
-task configured {
-    println 'configured>> This is also executed during the configuration phase.'
-}
+task configured { println 'configured>> This is also executed during the configuration phase.' }
 
-task test1 {
-    doLast {
-        println 'test1:doLast>> This is executed during the execution phase.'
-    }
-}
+task test1 { doLast { println 'test1:doLast>> This is executed during the execution phase.' } }
 
 task testBoth {
-    doFirst {
-      println 'testBoth:doFirst>> This is executed first during the execution phase.'
-    }
-    doLast {
-      println 'testBoth:doLast>> This is executed last during the execution phase.'
-    }
-    println 'testBoth>> This is executed during the configuration phase as well.'
+	doFirst { println 'testBoth:doFirst>> This is executed first during the execution phase.' }
+	doLast { println 'testBoth:doLast>> This is executed last during the execution phase.' }
+	println 'testBoth>> This is executed during the configuration phase as well.'
 }
 
 task reportTestF(type: TestReport) {
 	destinationDir = file("./junit_reports")
-	
+
 	subprojects.each { project ->
-		project.fileTree('build/test-results/').matching  { 
-			include "*/binary"
-		}.visit {FileVisitDetails details ->
-			if (details.file.isDirectory() && details.file.getName().equals('binary')) { 
-    			reportOn details.file 
-    		}
+		project.fileTree('build/test-results/').matching  {  include "*/binary" }.visit {FileVisitDetails details ->
+			if (details.file.isDirectory() && details.file.getName().equals('binary')) {
+				reportOn details.file
+				println 'reportTestF@reportOn -> ' + details.file
+			}
+			println 'reportTestF -> ' + project.name
 		}
 	}
 }
 
 task taskX << {
-    throw new GradleException('This task fails!');
+	throw new GradleException('This task fails!');
 }
 
 task taskY << {
-    if (taskX.state.failure != null) {
-        //here is what shoud be executed if taskX fails
-        println 'taskX was failed!'
-    }
+	if (taskX.state.failure != null) {
+		//here is what shoud be executed if taskX fails
+		println 'taskX was failed!'
+	}
 }
 
 taskX.finalizedBy taskY
 
 class GreetingPlugin implements Plugin<Project> {
-    void apply(Project project) {
-        def extension = project.extensions.create('greeting', GreetingPluginExtension, project)
-        project.tasks.create('hello', Greeting) {
-            message = extension.message
-            outputFiles = extension.outputFiles
-        }
-    }
+	void apply(Project project) {
+		def extension = project.extensions.create('greeting', GreetingPluginExtension, project)
+		project.tasks.create('hello', Greeting) {
+			message = extension.message
+			outputFiles = extension.outputFiles
+		}
+	}
 }
 
 class GreetingPluginExtension {
-    final PropertyState<String> message
-    final ConfigurableFileCollection outputFiles
+	final PropertyState<String> message
+	final ConfigurableFileCollection outputFiles
 
-    GreetingPluginExtension(Project project) {
-        message = project.property(String)
-        message.set('Hello from GreetingPlugin')
-        outputFiles = project.files()
-    }
+	GreetingPluginExtension(Project project) {
+		message = project.property(String)
+		message.set('Hello from GreetingPlugin')
+		outputFiles = project.files()
+	}
 
-    void setOutputFiles(FileCollection outputFiles) {
-        this.outputFiles.setFrom(outputFiles)
-    }
-    
-    void setMessage(String message) {
-        this.message.set(message)
-    }
+	void setOutputFiles(FileCollection outputFiles) {
+		this.outputFiles.setFrom(outputFiles)
+	}
+
+	void setMessage(String message) {
+		this.message.set(message)
+	}
 }
 
 class Greeting extends DefaultTask {
-    PropertyState<String> message = project.property(String)
-    ConfigurableFileCollection outputFiles = project.files()
+	PropertyState<String> message = project.property(String)
+	ConfigurableFileCollection outputFiles = project.files()
 
-    @TaskAction
-    void printMessage() {
-        outputFiles.each {
-            logger.quiet "Writing message 'Hi from Gradle' to file"
-            it.text = message.get()
-        }
-    }
+	@TaskAction
+	void printMessage() {
+		outputFiles.each {
+			logger.quiet "Writing message 'Hi from Gradle' to file"
+			it.text = message.get()
+		}
+	}
 }
 
 apply plugin: GreetingPlugin
 
 greeting {
-    message = 'Hi from Gradle'
-    outputFiles = files('a.txt', 'b.txt')
+	message = 'Hi from Gradle'
+	outputFiles = files('a.txt', 'b.txt')
 }
 
 allprojects {
 	task cleanJacoco(type: Delete) {
-	  delete "$buildDir/jacoco", "$buildDir/reports/jacoco"
-	  followSymlinks = true
+		delete "$buildDir/jacoco", "$buildDir/reports/jacoco"
+		followSymlinks = true
 	}
+	println 'Alllll projects ' + project.name
+
+	configurations.all { transitive = false }
 }
 
 def testedProjects = ['zzzTest1', 'zzzTest2']
@@ -356,37 +398,37 @@ task test_unit_p(type: Test) {
 	maxParallelForks = Runtime.runtime.availableProcessors() / 2
 	println '@maxParallelForks: ' + maxParallelForks
 	include '**/*TestSuite.class'
-	
+
 	subprojects.each { project ->
 		if (testedProjects.contains('*') || testedProjects.contains(project.name)) {
 			classpath += project.sourceSets.test.runtimeClasspath
 			testClassesDirs += project.sourceSets.test.output.classesDirs
-		} 
+		}
 	}
 	//classpath = files(subprojects.sourceSets.test.runtimeClasspath)
 	//testClassesDirs = files(subprojects.sourceSets.test.output.classesDirs)
-	
+
 	//filter some tests
 	subprojects.each { project ->
-		if(ignoredTestUFiles.containsKey(project.name)) { 
+		if(ignoredTestUFiles.containsKey(project.name)) {
 			ignoredTestUFiles[project.name].each { exclude("**/$it") }
 		}
 	}
-	
+
 	/*
-	subprojects.sourceSets.test.runtimeClasspath.each {
-		println '@AAA: ' + it
-		it.each { File file ->
-			println file
-		}
-	}
-	subprojects.sourceSets.main.output.classesDirs.each {
-		println '@BBB: ' + it
-		it.each { File file ->
-			println file
-		}
-	}
-	*/	
+	 subprojects.sourceSets.test.runtimeClasspath.each {
+	 println '@AAA: ' + it
+	 it.each { File file ->
+	 println file
+	 }
+	 }
+	 subprojects.sourceSets.main.output.classesDirs.each {
+	 println '@BBB: ' + it
+	 it.each { File file ->
+	 println file
+	 }
+	 }
+	 */	
 }
 
 task test_unit
@@ -394,7 +436,7 @@ task test_functional
 
 task reportTestU(type: TestReport) {
 	destinationDir = file("$buildDir/junit_reports")
-	
+
 	subprojects.each { project ->
 		reportOn project.file('build/test-results/testU/bin')
 	}
@@ -405,19 +447,58 @@ subprojects {
 	testUTask.skipIfNoTestFound = false
 	testUTask.classpath = sourceSets.test.runtimeClasspath
 	testUTask.include('**/*TestSuite.class')
-	
+
 	if(ignoredTestUFiles.containsKey(project.name)) ignoredTestUFiles[project.name].each { testUTask.exclude("**/$it") }
-	
+
 	test.dependsOn testUTask
-	
+
 	testUTask.binResultsDir = project.file('build/test-results/testU/bin')
 	test.enabled = false
-	
+
 	//-Dorg.gradle.debug=true
 	//testUTask.jvmArgs '-Xdebug','-Xrunjdwp:transport=dt_socket,server=y,suspend=y,address=10999'
+
+	//	test {
+	//		outputs.upToDateWhen{ false }
+	//	}
 }
 
 subprojects {
 	project.rootProject.tasks.test_unit.dependsOn project.tasks.matching {it.name.startsWith('testU') }
 	project.rootProject.tasks.test_functional.dependsOn project.tasks.matching {it.name.startsWith('testF') }
+}
+
+class GeneratePlugin implements Plugin<Project> {
+	void apply(Project project) {
+		final Task generateTask = project.getTasks().create("generate");
+		generateTask.setDescription("Generate all needed files");
+
+		if (project.getRootProject() == project) {
+			for (final Project subProject : project.getSubprojects()) {
+				//				subProject.afterEvaluate(p -> generateTask.dependsOn(p.getTasks().findByName("generate")));
+			}
+		}
+	}
+}
+
+apply plugin: GeneratePlugin
+//allprojects {  }
+subprojects {
+	apply plugin: GeneratePlugin
+	project.rootProject.tasks.generate.dependsOn project.tasks.matching {it.name.equals('generate') }
+}
+
+// PARALLEL
+allprojects {
+	configurations { codec }
+
+	dependencies { codec "commons-codec:commons-codec:1.10" }
+}
+
+allprojects {
+	task md5(type: CreateMD5) {
+		destinationDir = file("${buildDir}/md5")
+		source = file("src")
+		codecClasspath = configurations.codec
+	}
 }

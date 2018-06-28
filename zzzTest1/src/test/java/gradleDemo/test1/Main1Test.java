@@ -16,6 +16,6 @@ public class Main1Test {
 		Main1.main(null);
 		Main1Generated.main(null);
 		Main1TestGenerated.main(null);
-		Thread.sleep(5000);
+//		Thread.sleep(5000);
 	}
 }

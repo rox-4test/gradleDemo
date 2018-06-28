@@ -1,5 +1,7 @@
 import com.smarttrade.test.CoreTest;
 
+println '@zzzTest1@'
+
 configurations {
     //testCompile
     
@@ -10,6 +12,8 @@ configurations {
 
 dependencies {
     compile 'org.slf4j:slf4j-api:1.7.21'
+	compile group: 'org.apache.ant', name: 'ant', version: '1.10.3'
+
 
     testCompile 'junit:junit:4.12@jar'
     testCompile 'org.hamcrest:hamcrest-core:1.3'
@@ -17,8 +21,14 @@ dependencies {
     testBaseRuntime sourceSets.main.output, sourceSets.test.output
 }
 
+println 'zzzTest1@extProp: ' + extProp
+
+extProp = false
+
+println 'zzzTest1@extProp: ' + extProp
+
 afterEvaluate { subproject ->
-	println 'afterEvaluate@self  -> ' + subproject.name
+	println '@zzzTest1@afterEvaluate  -> ' + subproject.name
 }
 	
 
@@ -67,3 +77,33 @@ task AAA {
 		println 'Hello !!!'
 	}
 }
+
+import com.smarttrade.test.MyTask
+
+task myTask(type: MyTask) {
+	println 'RuntimeClasspath: ' +  sourceSets.main.runtimeClasspath.files
+	println 'Runtime: ' + configurations.runtime.files
+	println 'Main output: ' +  sourceSets.main.output.files
+//	taskRoot.dependsOn myTask
+}
+
+gradle.afterProject {
+	println 'zzzTest1:afterProject'
+}
+
+tasks.whenTaskAdded { task ->
+	println 'zzzTest1:whenTaskAdded: ' + task
+	println 'zzzTest1:whenTaskAdded: ' + sourceSets.main.class + ": " + sourceSets.main
+	println 'zzzTest1:whenTaskAdded: ' + sourceSets.main.output.class + ": " + sourceSets.main.output
+	println 'zzzTest1:whenTaskAdded: ' + "classesDirs: " + sourceSets.main.output.classesDirs.files
+	println 'zzzTest1:whenTaskAdded: ' + "resourcesDir: " + sourceSets.main.output.resourcesDir
+	println 'zzzTest1:whenTaskAdded: ' + '${project.buildDir}/classes/${sourceDirectorySet.name}/${sourceSet.name}'
+}
+
+afterEvaluate {
+	println 'zzzTest1:afterEvaluate'
+	tasks.each { 
+		println 'zzzTest1:afterEvaluate task: ' + it
+	}
+}
+println '@zzzTest1@end'

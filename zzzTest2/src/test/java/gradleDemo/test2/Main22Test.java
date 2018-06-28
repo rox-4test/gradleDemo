@@ -17,6 +17,6 @@ public class Main22Test {
 				+ ManagementFactory.getRuntimeMXBean().getName());
 		Main.main(null);
 		Main2Generated.main(null);
-		Thread.sleep(5000);
+//		Thread.sleep(5000);
 	}
 }

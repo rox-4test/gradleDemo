@@ -1,4 +1,5 @@
 repositories {
+	jcenter()
 	maven {
 		url 'https://software.smart-trade.net/artifactory/plugins-release'
 		credentials {
@@ -22,6 +23,10 @@ apply plugin: 'eclipse'
 dependencies {
     compile gradleApi()
     compile localGroovy()
+	
+	//parallel
+	compile "commons-io:commons-io:2.5"
+	compileOnly "commons-codec:commons-codec:1.9"
 }
 
 eclipseJdt.enabled  = false

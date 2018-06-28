@@ -17,6 +17,6 @@ public class Main2bTest {
 				+ ManagementFactory.getRuntimeMXBean().getName());
 		Main.main(null);
 		Main2Generated.main(null);
-		Thread.sleep(10000);
+//		Thread.sleep(10000);
 	}
 }
