@@ -6,9 +6,12 @@ configurations {
     testBaseRuntime {
     	extendsFrom testRuntime
     }
+	
+	junit
 }
 
 dependencies {
+	junit 'junit:junit:4.12@jar'
     compile 'org.slf4j:slf4j-api:1.7.21'
 	
 	compile project(':zzzTest2')
@@ -16,6 +19,7 @@ dependencies {
     testCompile 'org.hamcrest:hamcrest-core:1.3'
     
     testBaseRuntime sourceSets.main.output, sourceSets.test.output
+    testBaseRuntime project.files('./src/etc')
 }
 
 additional_sonar_coverage_exclusions = ["**/src-generated1/**"]
@@ -61,5 +65,37 @@ task testF (type: CoreTest) {
     skipIfNoTestFound = true
     doLast {
     	println '@zzzTest3#testF executed'
+		println '@@@BBB: ' + configurations.testCompile.files()
     }
 }
+
+afterEvaluate {
+	Configuration testRuntime = project.getConfigurations().findByName("testBaseRuntime");
+	if (testRuntime == null) {
+		project.getLogger().quiet("No testRuntime configuration for project {}.", project.getName());
+		println 'AAA: no runtime'
+		return;
+	}
+	testRuntime.getAllDependencies().each {
+		if (it instanceof FileCollectionDependency) {
+			println '-F-'
+			it.files.each {
+				println 'AAA: ' + it.path
+			}
+		} else if (it instanceof ExternalModuleDependency) {
+			println '-E-'
+			it.artifacts.each {
+				println 'AAA: ' + it
+			}
+		} else {
+			println '---'
+			println 'AAA: ' + it
+		}
+	}
+	configurations.testCompile.getResolvedConfiguration().getResolvedArtifacts().each {
+		println 'bbb: ' + it.file
+	}
+	println 'BBB: ' + configurations.testCompile.files()
+	println '@Junit: ' + configurations.junit.files()
+}
+	

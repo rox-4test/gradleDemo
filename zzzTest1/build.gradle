@@ -107,3 +107,9 @@ afterEvaluate {
 	}
 }
 println '@zzzTest1@end'
+
+println "Test's classpath: " + project.tasks.test.classpath.files
+
+println "Test's test java srcDirs: " + sourceSets.test.java.srcDirs
+println "@BuildDir: " + getProject().getBuildDir()
+println "@BuildDir#toPath: " + getProject().getBuildDir().toPath()
