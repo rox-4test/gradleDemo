@@ -4,3 +4,5 @@
 /buildSrc/build/
 /buildSrc/.gradle/
 /.classpath
+/.settings
+/.project
