@@ -63,6 +63,15 @@ allprojects {
 	task taskCommon {
 		doLast { println project.name + '->taskCommon' }
 	}
+	
+	if (project.name != 'zzzTest2') {
+		task allprojects() {
+			println '[allprojects] Configuration'
+			doLast {
+				println '[allprojects] Execution'
+			}
+		}
+	}
 }
 import java.util.concurrent.Callable;
 
@@ -152,6 +161,13 @@ subprojects {
 	}
 
 	project.ext.extProp = true
+	
+	task subProjects() {
+		println '[subProjects] Configuration'
+		doLast {
+			println '[subProjects] Execution'
+		}
+	}
 	
 	afterEvaluate { project ->
 		println 'subprojects@afterEvaluate@extProp: ' + extProp
@@ -338,6 +354,12 @@ class GreetingPlugin implements Plugin<Project> {
 			message = extension.message
 			outputFiles = extension.outputFiles
 		}
+		if (project == project.getRootProject()) {
+			println '@@@: ' + project.getSubprojects()
+			for (final Project subProject : project.getSubprojects()) {
+				subProject.getPlugins().apply(GreetingPlugin.class);
+			}
+		}
 	}
 }
 
@@ -356,6 +378,7 @@ class GreetingPluginExtension {
 	}
 
 	void setMessage(String message) {
+		println '[GreetingPluginExtension] setMessage: ' + message
 		this.message.set(message)
 	}
 }
@@ -366,6 +389,7 @@ class Greeting extends DefaultTask {
 
 	@TaskAction
 	void printMessage() {
+		println '[greeting] writing message: ' + message.get()
 		outputFiles.each {
 			logger.quiet "Writing message 'Hi from Gradle' to file"
 			it.text = message.get()
@@ -375,7 +399,10 @@ class Greeting extends DefaultTask {
 
 apply plugin: GreetingPlugin
 
+println '[greeting] Begin'
+
 greeting {
+	println '[greeting] Configuration'
 	message = 'Hi from Gradle'
 	outputFiles = files('a.txt', 'b.txt')
 }

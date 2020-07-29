@@ -54,6 +54,14 @@ dependencies {
     testCompile 'junit:junit:4.12'
 }
 
+println '[greeting] Begin zzzTest2'
+
+greeting {
+	println '[greeting] Configuration zzzTest2'
+	message = 'Greeting from zzzTest2'
+	outputFiles = files('a2.txt', 'b2.txt')
+}
+
 task testF (type: CoreTest) {
 	println 'self@testF'
     classpath = configurations.testBaseRuntime
